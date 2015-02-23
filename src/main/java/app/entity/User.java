@@ -1,6 +1,4 @@
-package config.entity;
-
-import config.enumeration.UserRole;
+package app.entity;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -21,10 +19,12 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
-    @Enumerated(value = EnumType.STRING)
-    @CollectionTable
-    private Collection<UserRole> roles;
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private Collection<Role> roles;
+
+    public Long getId() {
+        return id;
+    }
 
     public String getName() {
         return name;
@@ -42,11 +42,11 @@ public class User {
         this.password = password;
     }
 
-    public Collection<UserRole> getRoles() {
+    public Collection<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Collection<UserRole> roles) {
+    public void setRoles(Collection<Role> roles) {
         this.roles = roles;
     }
 }

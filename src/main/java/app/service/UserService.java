@@ -1,8 +1,8 @@
-package config.service;
+package app.service;
 
-import config.dao.UserRepository;
-import config.entity.User;
-import config.enumeration.UserRole;
+import app.dao.UserRepository;
+import app.entity.Role;
+import app.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,20 +28,20 @@ public class UserService implements UserDetailsService {
     @Override
     @Nullable
     public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
-        User user = userRepository.findByName(name);
+        final User user = userRepository.findByName(name);
         if (user == null) {
             return null;
         }
 
-        Collection<GrantedAuthority> authorities = getAuthorities(user);
+        final Collection<GrantedAuthority> authorities = getAuthorities(user);
         return new org.springframework.security.core.userdetails.User(user.getName(), user.getPassword(), authorities);
     }
 
     private Collection<GrantedAuthority> getAuthorities(User user) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
+        final List<GrantedAuthority> authorities = new ArrayList<>();
         if (user.getRoles() != null) {
-            for (UserRole userRole : user.getRoles()) {
-                authorities.add(new SimpleGrantedAuthority(userRole.name()));
+            for (final Role role : user.getRoles()) {
+                authorities.add(new SimpleGrantedAuthority(role.getValue().name()));
             }
         }
 

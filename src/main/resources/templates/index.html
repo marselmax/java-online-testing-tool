@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tasks</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="css/bootstrap.css" rel="stylesheet"/>
+</head>
+
+<body>
+
+<div class="container">
+    <div th:text="${#httpServletRequest.remoteUser}">Username</div>
+    <h1>Tasks</h1>
+
+    <div class="row" th:each="task: ${tasks}">
+        <br/>
+        <hr/>
+        <div class="col-sm-8" th:text="${task.condition}">One</div>
+        <div class="col-sm-4">
+            <form action="/submit" enctype="multipart/form-data" method="post">
+                <input class="btn btn-default" type="file" name="datafile" value="Choose File"/>
+                <input type="hidden" name="taskId" value="0" th:attr="value=${task.id}"/>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

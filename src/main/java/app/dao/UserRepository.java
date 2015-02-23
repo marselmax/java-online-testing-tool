@@ -1,6 +1,6 @@
-package config.dao;
+package app.dao;
 
-import config.entity.User;
+import app.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -10,4 +10,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByName(String name);
+
 }
