@@ -5,7 +5,9 @@ import app.entity.Task;
 import app.exception.ServiceException;
 import app.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -36,15 +38,20 @@ public class MainController {
 
     @ModelAttribute(value = "tasks")
     public List<Task> getTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAll(new Sort(Sort.Direction.ASC, "id"));
     }
 
     @RequestMapping(value = "submit", method = RequestMethod.POST)
     public String submit(HttpServletRequest request,
+                         Model model,
                          @RequestParam("datafile") MultipartFile multipartFile,
-                         @RequestParam("taskId") Long taskId) throws ServiceException {
+                         @RequestParam("taskId") Long taskId
+    ) throws ServiceException {
         String user = request.getRemoteUser();
-        testService.submit(user, taskId, multipartFile);
-        return "index";
+        Task task = taskRepository.getOne(taskId);
+        Boolean result = testService.submit(user, task, multipartFile);
+        model.addAttribute("result", result);
+
+        return "testResult";
     }
 }

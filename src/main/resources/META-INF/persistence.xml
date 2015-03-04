@@ -8,7 +8,6 @@
     <persistence-unit name="default">
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-            <!-- other properties ... -->
         </properties>
     </persistence-unit>
 </persistence>
