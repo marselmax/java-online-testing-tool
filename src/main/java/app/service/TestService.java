@@ -1,160 +1,162 @@
 package app.service;
 
-import app.entity.Task;
+import app.dao.SubmitResultRepository;
 import app.exception.ServiceException;
 import app.invokers.AbstractInvoker;
+import app.model.db.SubmitResult;
+import app.model.db.Task;
+import app.model.db.TestResult;
+import app.model.db.User;
+import app.model.dto.CompileResult;
 import app.tests.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author marsel.maximov
  */
 
 public class TestService {
-
     private final Logger logger = LoggerFactory.getLogger(TestService.class);
 
-    private static final String JAVA_PATTERN = "\\.java";
-
     private final String submittedPath;
-    private final JavaCompiler javaCompiler;
-    private final DiagnosticCollector<JavaFileObject> diagnosticCollector;
-    private final StandardJavaFileManager javaFileManager;
+    private final UploadService uploadService;
+    private final CompilerService compilerService;
+    private final SubmitResultRepository submitResultRepository;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public TestService(
-            String submittedPath, JavaCompiler javaCompiler,
-            DiagnosticCollector<JavaFileObject> diagnosticCollector,
-            StandardJavaFileManager javaFileManager) {
+            String submittedPath,
+            UploadService uploadService,
+            CompilerService compilerService, SubmitResultRepository submitResultRepository
+    ) {
         this.submittedPath = submittedPath;
-        this.javaCompiler = javaCompiler;
-        this.diagnosticCollector = diagnosticCollector;
-        this.javaFileManager = javaFileManager;
+        this.uploadService = uploadService;
+        this.compilerService = compilerService;
+        this.submitResultRepository = submitResultRepository;
     }
 
-    public Boolean submit(String user, Task task, MultipartFile multipartFile) throws ServiceException {
-        Long taskId = task.getId();
-        String pathname = getPathname(user, taskId);
-        File file = upload(multipartFile, pathname);
-        if (!compile(file)) {
-            throw new ServiceException("Error during compiling file " + multipartFile.getOriginalFilename());
-        }
+    public TestResult submit(User user, Task task, MultipartFile multipartFile) throws ServiceException {
+        Integer taskId = task.getTaskId();
+        String pathname = getPathname(user.getName(), taskId);
+        File file = uploadService.upload(multipartFile, pathname);
+        TestResult result;
+        CompileResult compileResult = compile(file);
+        if (!compileResult.getResult()) {
+            logger.info("Error during compilation file " + multipartFile.getOriginalFilename());
+            result = new TestResult(Boolean.FALSE, "Compilation error: " + compileResult.getErrorMessage());
+        } else {
+            Class<?> clazz = loadSubmittedClass(pathname, JavaFileUtils.resolveFullClassName(file));
 
-        Class<?> clazz = loadSubmittedClass(pathname, file.getName());
+            Class<? extends AbstractInvoker> invokerClass = loadInvokerClass(task.getInvokerClassPath(), task.getInvokerClass());
 
-        Class<? extends AbstractInvoker> invokerClass = loadInvokerClass(task.getInvokerClass());
+            Class<? extends Test> testClass = loadTestClass(task.getTestClassPath(), task.getTestClass());
 
-        Class<? extends Test> testClass = loadTestClass(task.getTestClass());
+            Future<TestResult> testResultFuture = executorService.submit(new TestTask(testClass, invokerClass, clazz));
 
-        Boolean result;
-        try {
-            result = testClass.newInstance().test(invokerClass.getConstructor(Class.class).newInstance(clazz));
-        } catch (ReflectiveOperationException e) {
-            //todo
-            logger.error("error", e);
-            throw new ServiceException("error");
+            try {
+                result = testResultFuture.get();
+            } catch (InterruptedException e) {
+                logger.error("Exception was thrown ", e);
+                throw new ServiceException("Internal error");
+            } catch (ExecutionException e) {
+                logger.error("Exception was thrown ", e);
+                throw new ServiceException("Internal error");
+            }
         }
 
         logger.info("Result={}", result);
 
+        saveSubmitResult(user, task, result, pathname + multipartFile.getOriginalFilename());
+
         return result;
     }
 
-    private File upload(MultipartFile multipartFile, String pathname) throws ServiceException {
-        File dir = new File(pathname);
-        File file = new File(dir, multipartFile.getOriginalFilename());
-        try {
-            dir.mkdirs();
-            file.createNewFile();
-            multipartFile.transferTo(file);
-        } catch (IOException e) {
-            logger.error("Error during copying file", e);
-            throw new ServiceException("Internal error");
-        }
-
-        return file;
+    private void saveSubmitResult(User user, Task task, TestResult result, String pathname) {
+        SubmitResult submitResult = new SubmitResult();
+        submitResult.setUser(user);
+        submitResult.setTask(task);
+        submitResult.setTestResult(result);
+        submitResult.setSubmitDateTime(new Timestamp(System.currentTimeMillis()));
+        submitResult.setPathToFile(pathname);
+        submitResultRepository.save(submitResult);
     }
 
-    private String getPathname(String user, Long taskId) {
+    private String getPathname(String user, Integer taskId) {
         String dateStr = new Date().toString();
         return submittedPath + user + "/" + taskId + "/" + dateStr + "/";
     }
 
-    private boolean compile(File file) {
-        Iterable<? extends JavaFileObject> javaFileObjects = javaFileManager.getJavaFileObjects(file);
-        JavaCompiler.CompilationTask task = javaCompiler.getTask(null, javaFileManager, diagnosticCollector, null, null, javaFileObjects);
-        return task.call();
+    private CompileResult compile(File file) {
+        return compilerService.compile(file);
     }
 
-    private Class<?> loadSubmittedClass(String pathname, String fileName) throws ServiceException {
+    private Class<?> loadSubmittedClass(String pathname, String className) throws ServiceException {
         Class<?> clazz;
         try {
             URL pathUrl = Paths.get(pathname).toUri().toURL();
             ClassLoader classLoader = new URLClassLoader(new URL[]{pathUrl});
-            clazz = classLoader.loadClass(resolveClassName(fileName));
+            clazz = classLoader.loadClass(className);
         } catch (ClassNotFoundException e) {
-            logger.error("Error during loading file " + fileName, e);
-            throw new ServiceException("Error during loading file " + fileName);
+            logger.error("Error during loading class " + className, e);
+            throw new ServiceException("Error during loading class " + className);
         } catch (MalformedURLException e) {
-            logger.error("Error during loading file " + pathname, e);
-            throw new ServiceException("Error during loading file " + fileName);
+            logger.error("Error during loading class " + pathname, e);
+            throw new ServiceException("Error during loading class " + className);
         }
 
         return clazz;
     }
 
-    private Class<? extends AbstractInvoker> loadInvokerClass(String invokerClassName) throws ServiceException {
+    private Class<? extends AbstractInvoker> loadInvokerClass(String pathName, String invokerClassName) throws ServiceException {
         Class<? extends AbstractInvoker> invokerClass;
         try {
-            invokerClass = (Class<? extends AbstractInvoker>) Class.forName(invokerClassName);
+            URL pathUrl = Paths.get(pathName).toUri().toURL();
+            ClassLoader classLoader = new URLClassLoader(new URL[]{pathUrl});
+            invokerClass = (Class<? extends AbstractInvoker>) classLoader.loadClass(invokerClassName);
         } catch (ClassNotFoundException e) {
             logger.error("Invoker class " + invokerClassName + " not found", e);
             throw new ServiceException("Internal error");
         } catch (ClassCastException e) {
             logger.error("Invoker class " + invokerClassName + " don't extends AbstractInvoker", e);
             throw new ServiceException("Internal error");
+        } catch (MalformedURLException e) {
+            logger.error("Error during loading file " + invokerClassName, e);
+            throw new ServiceException("Error during loading file " + invokerClassName);
         }
 
         return invokerClass;
     }
 
-    private Class<? extends Test> loadTestClass(String testClassName) throws ServiceException {
+    private Class<? extends Test> loadTestClass(String pathName, String testClassName) throws ServiceException {
         Class<? extends Test> testClass;
         try {
-            testClass = (Class<? extends Test>) Class.forName(testClassName);
+            URL pathUrl = Paths.get(pathName).toUri().toURL();
+            ClassLoader classLoader = new URLClassLoader(new URL[]{pathUrl});
+            testClass = (Class<? extends Test>) classLoader.loadClass(testClassName);
         } catch (ClassNotFoundException e) {
             logger.error("Test class " + testClassName + " not found", e);
             throw new ServiceException("Internal error");
         } catch (ClassCastException e) {
             logger.error("Test class " + testClassName + " don't implements Test", e);
             throw new ServiceException("Internal error");
+        } catch (MalformedURLException e) {
+            logger.error("Error during loading file " + testClassName, e);
+            throw new ServiceException("Error during loading file " + testClassName);
         }
         return testClass;
-    }
-
-    private String resolveClassName(String fileName) throws ServiceException {
-        Pattern pattern = Pattern.compile(JAVA_PATTERN);
-        Matcher matcher = pattern.matcher(fileName);
-        if (matcher.find()) {
-            return fileName.substring(0, matcher.start());
-        }
-
-        logger.error("Can not resolve class name " + fileName);
-        throw new ServiceException("Error during loading file " + fileName);
     }
 }

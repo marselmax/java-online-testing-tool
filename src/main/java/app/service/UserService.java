@@ -1,8 +1,8 @@
 package app.service;
 
 import app.dao.UserRepository;
-import app.entity.Role;
-import app.entity.User;
+import app.model.db.Role;
+import app.model.db.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

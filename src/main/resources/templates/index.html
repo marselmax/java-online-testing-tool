@@ -1,22 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title>Tasks</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="css/bootstrap.css" rel="stylesheet"/>
+    <link href="../static/css/bootstrap.css" rel="stylesheet"/>
 </head>
 
 <body>
 
 <div class="container">
-    <div th:text="${#httpServletRequest.remoteUser}">Username</div>
+    <br/>
+
+    <div class="row">
+        <div class="col-sm-6"></div>
+        <div class="col-sm-6">
+            <div class="text-right">
+                <a href="/user" th:text="${#httpServletRequest.remoteUser}">Username</a>
+            </div>
+        </div>
+    </div>
     <h1>Tasks</h1>
+
+    <div th:if="${isAdmin}">
+        <br/>
+        <a class="btn btn-default" href="/new" role="button">Add new task</a>
+    </div>
 
     <div class="row" th:each="task: ${tasks}">
         <br/>
         <hr/>
-        <div class="col-sm-8" th:text="${task.condition}">One</div>
+        <div class="col-sm-1" th:text="${task.taskId}">12</div>
+        <div class="col-sm-7" th:text="${task.condition}">One</div>
         <div class="col-sm-4">
             <form action="/submit" enctype="multipart/form-data" method="post">
                 <input class="btn btn-default" type="file" name="datafile" value="Choose File"/>

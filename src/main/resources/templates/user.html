@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="css/bootstrap.css" rel="stylesheet"/>
+    <link href="../static/css/bootstrap.css" rel="stylesheet"/>
+    <title>User Details</title>
+</head>
+<body>
+<div class="container">
+    <br/>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <a href="/">Tasks</a>
+        </div>
+        <div class="col-sm-6">
+            <div class="text-right" th:text="${#httpServletRequest.remoteUser}">Username</div>
+        </div>
+    </div>
+
+    <h1>Submitted tasks</h1>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <td>Task #</td>
+            <td>Condition</td>
+            <td>Result</td>
+            <td>Date</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="result: ${submittedResults}">
+            <td th:text="${result.taskId}">1</td>
+            <td th:text="${result.taskCondition}">Task one condition</td>
+            <td th:text="${result.result}">Success</td>
+            <td th:text="${result.submitDateTimeString}">2015-03-23</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

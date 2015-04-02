@@ -1,6 +1,6 @@
 package app.dao;
 
-import app.entity.Task;
+import app.model.db.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

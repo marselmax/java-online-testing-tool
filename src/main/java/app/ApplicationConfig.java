@@ -1,7 +1,11 @@
 package app;
 
-import app.service.TestService;
-import app.service.UserService;
+import app.dao.SubmitResultRepository;
+import app.dao.TaskRepository;
+import app.dao.UserRepository;
+import app.service.*;
+import app.ws.MainController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -10,10 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.ToolProvider;
+import javax.tools.*;
 import java.net.MalformedURLException;
 
 /**
@@ -25,11 +26,24 @@ import java.net.MalformedURLException;
 @ComponentScan
 public class ApplicationConfig {
     public static void main(String[] args) {
+        TestSecurityContext.init();
         SpringApplication.run(ApplicationConfig.class, args);
     }
 
     @Value("${datafiles.submitted.location}")
     private String submittedPath;
+
+    @Value("${datafiles.tasks.location}")
+    private String tasksPath;
+
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SubmitResultRepository submitResultRepository;
 
     @Bean
     public UserDetailsService userService() {
@@ -37,14 +51,38 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public TestService testService() throws MalformedURLException {
-        final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+    public UploadService uploadService() {
+        return new UploadService();
+    }
+
+    @Bean
+    public CompilerService compilerService() {
+        JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
+        StandardJavaFileManager fileManager = javaCompiler.getStandardFileManager(diagnosticCollector, null, null);
+        return new CompilerService(javaCompiler, diagnosticCollector, fileManager);
+    }
+
+    @Bean
+    public TestService testService() throws MalformedURLException {
         return new TestService(
                 submittedPath,
-                javaCompiler,
-                diagnosticCollector,
-                javaCompiler.getStandardFileManager(diagnosticCollector, null, null)
+                uploadService(),
+                compilerService(),
+                submitResultRepository
+        );
+    }
+
+    @Bean
+    public TaskService taskService() {
+        return new TaskService(uploadService(), compilerService(), taskRepository, tasksPath);
+    }
+
+    @Bean
+    public MainController mainController() throws MalformedURLException {
+        return new MainController(
+                taskRepository, userRepository, submitResultRepository,
+                testService(), taskService(), tasksPath
         );
     }
 }

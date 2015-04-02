@@ -1,6 +1,8 @@
 package app.tests;
 
+import app.exception.ServiceException;
 import app.invokers.AbstractInvoker;
+import app.model.db.TestResult;
 
 /**
  * @author marsel.maximov
@@ -8,6 +10,6 @@ import app.invokers.AbstractInvoker;
 
 public interface Test<Invoker extends AbstractInvoker> {
 
-    Boolean test(Invoker invoker) throws ReflectiveOperationException;
+    TestResult test(Invoker invoker) throws ReflectiveOperationException, ServiceException;
 
 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="css/bootstrap.css" rel="stylesheet"/>
+    <link href="../static/css/bootstrap.css" rel="stylesheet"/>
+    <title>New Task</title>
+</head>
+<body>
+<div class="container">
+    <br/>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <a href="/">Tasks</a>
+        </div>
+        <div class="col-sm-6">
+            <div class="text-right">
+                <a href="/user" th:text="${#httpServletRequest.remoteUser}">Username</a>
+            </div>
+        </div>
+    </div>
+
+    <h1>New Task</h1>
+
+    <br/>
+
+    <form action="/newTask" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="taskId">Task #</label>
+            <input class="form-control" id="taskId" type="number" name="taskId" min="1"/>
+        </div>
+        <div class="form-group">
+            <label for="condition">Task condition</label>
+            <textarea class="form-control" id="condition" name="taskCondition"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="invokerMultipartFile">Invoker class</label>
+            <input class="form-control" id="invokerMultipartFile" type="file" name="invokerMultipartFile"/>
+        </div>
+        <div class="form-group">
+            <label for="testMultipartFile">Test class</label>
+            <input class="form-control" id="testMultipartFile" type="file" name="testMultipartFile"/>
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+</body>
+</html>

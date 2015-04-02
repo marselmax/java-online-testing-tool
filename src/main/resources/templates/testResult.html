@@ -1,15 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Test Result</title>
+    <title>Test Results</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="css/bootstrap.css" rel="stylesheet"/>
+    <link href="../static/css/bootstrap.css" rel="stylesheet"/>
 </head>
 
 <body>
 
-<div th:text="${result}">result</div>
+<div class="container">
+    <br/>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <a href="/">Tasks</a>
+        </div>
+        <div class="col-sm-6">
+            <div class="text-right">
+                <a href="/user" th:text="${#httpServletRequest.remoteUser}">Username</a>
+            </div>
+        </div>
+    </div>
+    <h1>Test results</h1>
+
+    <div th:if="${testResult.result}">Success!</div>
+
+    <div th:unless="${testResult.result}">
+        <div>Failure</div>
+        <div>Cause:</div>
+        <div th:text="${testResult.cause}">cause</div>
+    </div>
+</div>
 
 </body>
 
