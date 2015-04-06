@@ -5,6 +5,18 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="css/bootstrap.css" rel="stylesheet"/>
     <link href="../static/css/bootstrap.css" rel="stylesheet"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            $(".clickable-row").click(function() {
+                window.document.location = $(this).data("href");
+            });
+        });
+
+    </script>
+    <style>
+        tr.clickable-row { cursor: pointer; }
+    </style>
     <title>User Details</title>
 </head>
 <body>
@@ -31,7 +43,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="result: ${submittedResults}">
+        <tr class="clickable-row" data-href="/result" th:each="result: ${submittedResults}">
             <td th:text="${result.taskId}">1</td>
             <td th:text="${result.taskCondition}">Task one condition</td>
             <td th:text="${result.result}">Success</td>

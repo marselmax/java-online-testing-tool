@@ -24,9 +24,6 @@ public class TestTask implements Callable<TestResult> {
 
     @Override
     public TestResult call() throws Exception {
-/*        TestSecurityManager testSecurityManager = TestSecurityContext.getTestSecurityManager();
-        testSecurityManager.enable();*/
-
         return testClass.newInstance().test(invokerClass.getConstructor(Class.class).newInstance(clazz));
     }
 }

@@ -18,15 +18,6 @@ public class JavaFileUtils {
     private static final Pattern JAVA_PATTERN = Pattern.compile("\\.java");
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("^\\s*package\\s*([^;]*);.*", Pattern.DOTALL);
 
-    public static String resolveClassName(String fileName) throws ServiceException {
-        Matcher matcher = JAVA_PATTERN.matcher(fileName);
-        if (matcher.find()) {
-            return fileName.substring(0, matcher.start());
-        }
-
-        throw new ServiceException("Error during loading file " + fileName);
-    }
-
     public static String resolveFullClassName(File javaFile) throws ServiceException {
         Matcher matcher;
         try {
@@ -46,5 +37,14 @@ public class JavaFileUtils {
         }
 
         return fullClassName;
+    }
+
+    private static String resolveClassName(String fileName) throws ServiceException {
+        Matcher matcher = JAVA_PATTERN.matcher(fileName);
+        if (matcher.find()) {
+            return fileName.substring(0, matcher.start());
+        }
+
+        throw new ServiceException("Error during loading file " + fileName);
     }
 }

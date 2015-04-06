@@ -74,31 +74,6 @@ public class MainController {
         return "testResult";
     }
 
-    @RequestMapping(value = "user", method = RequestMethod.GET)
-    public String userPage() {
-        return "user";
-    }
-
-    @ModelAttribute(value = "submittedResults")
-    public List<ResultUI> getSubmittedResults(HttpServletRequest request) {
-        String userName = request.getRemoteUser();
-        List<SubmitResult> submitResults = submitResultRepository.findByUser(userName);
-
-        List<ResultUI> resultUIs = new ArrayList<>(submitResults.size());
-        for (SubmitResult submitResult : submitResults) {
-            resultUIs.add(
-                    new ResultUI.Builder()
-                            .taskId(submitResult.getTask().getTaskId())
-                            .taskCondition(submitResult.getTask().getCondition())
-                            .result(submitResult.getTestResult().getResult())
-                            .submitDateTime(submitResult.getSubmitDateTime().toLocalDateTime())
-                            .build()
-            );
-        }
-
-        return resultUIs;
-    }
-
     @ModelAttribute(value = "isAdmin")
     private Boolean isAdmin(HttpServletRequest request) {
         String userName = request.getRemoteUser();
@@ -132,6 +107,38 @@ public class MainController {
         taskService.saveNewTask(taskId, taskCondition, invokerMultipartFile, testMultipartFile);
 
         return "redirect:/";
+    }
+
+    @ModelAttribute("allUsers")
+    public List<String> allUsers() {
+        List<User> userList = userRepository.findAll();
+        List<String> result = new ArrayList<>();
+        for (User user : userList) {
+            result.add(user.getName());
+        }
+
+        return result;
+    }
+
+    @RequestMapping(value = "user", method = RequestMethod.POST)
+    public String userPage(String userName, Model model) {
+        List<SubmitResult> submitResults = submitResultRepository.findByUser(userName);
+
+        List<ResultUI> resultUIs = new ArrayList<>(submitResults.size());
+        for (SubmitResult submitResult : submitResults) {
+            resultUIs.add(
+                    new ResultUI.Builder()
+                            .taskId(submitResult.getTask().getTaskId())
+                            .taskCondition(submitResult.getTask().getCondition())
+                            .result(submitResult.getTestResult().getResult())
+                            .submitDateTime(submitResult.getSubmitDateTime().toLocalDateTime())
+                            .build()
+            );
+        }
+
+        model.addAttribute("submittedResults", resultUIs);
+
+        return "user";
     }
 
 }

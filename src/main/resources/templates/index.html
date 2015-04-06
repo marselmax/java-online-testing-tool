@@ -13,20 +13,42 @@
 
 <div class="container">
     <br/>
-
     <div class="row">
         <div class="col-sm-6"></div>
         <div class="col-sm-6">
             <div class="text-right">
-                <a href="/user" th:text="${#httpServletRequest.remoteUser}">Username</a>
+                <form action="/user" method="post">
+                    <a href="javascript:;"
+                       onclick="parentNode.submit();"
+                       th:text="${#httpServletRequest.remoteUser}">Username</a>
+                    <input type="hidden" name="userName"
+                           value="userName" th:attr="value=${#httpServletRequest.remoteUser}"/>
+                </form>
             </div>
         </div>
     </div>
     <h1>Tasks</h1>
 
-    <div th:if="${isAdmin}">
+    <div class="row" th:if="${isAdmin}">
         <br/>
-        <a class="btn btn-default" href="/new" role="button">Add new task</a>
+
+        <div class="col-sm-6">
+            <a class="btn btn-default" href="/new" role="button">Add new task</a>
+        </div>
+        <div class="col-sm-6">
+            <div class="text-right">
+                <form action="/user" method="post" id="userResultsForm">
+                    View user results
+                    <select name="userName">
+                        <option th:each="user : ${allUsers}"
+                                th:value="${user}"
+                                th:text="${user}">user1
+                        </option>
+                    </select>
+                    <button type="submit" class="btn btn-default btn-xs">Submit</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="row" th:each="task: ${tasks}">
