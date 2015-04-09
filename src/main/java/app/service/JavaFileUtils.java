@@ -47,4 +47,14 @@ public class JavaFileUtils {
 
         throw new ServiceException("Error during loading file " + fileName);
     }
+
+
+    public static String getSourceString(String pathToFile) {
+        try {
+            return FileUtils.readFileToString(new File(pathToFile));
+        } catch (IOException e) {
+            logger.error("Error during reading file " + pathToFile, e);
+            return "Error during reading file";
+        }
+    }
 }

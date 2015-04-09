@@ -6,19 +6,25 @@
     <link href="css/bootstrap.css" rel="stylesheet"/>
     <link href="../static/css/bootstrap.css" rel="stylesheet"/>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script>
-        jQuery(document).ready(function($) {
-            $(".clickable-row").click(function() {
-                window.document.location = $(this).data("href");
-            });
-        });
-
-    </script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
     <style>
-        tr.clickable-row { cursor: pointer; }
+        .circleBase {
+        border-radius: 50%;
+        width: 15px;
+        height: 15px;
+        }
+
+        .success {
+        background: green;
+        }
+        .failure{
+        background: red;
+        }
     </style>
     <title>User Details</title>
 </head>
+
 <body>
 <div class="container">
     <br/>
@@ -33,24 +39,63 @@
     </div>
 
     <h1>Submitted tasks</h1>
-    <table class="table table-hover">
-        <thead>
-        <tr>
-            <td>Task #</td>
-            <td>Condition</td>
-            <td>Result</td>
-            <td>Date</td>
-        </tr>
-        </thead>
-        <tbody>
-        <tr class="clickable-row" data-href="/result" th:each="result: ${submittedResults}">
-            <td th:text="${result.taskId}">1</td>
-            <td th:text="${result.taskCondition}">Task one condition</td>
-            <td th:text="${result.result}">Success</td>
-            <td th:text="${result.submitDateTimeString}">2015-03-23</td>
-        </tr>
-        </tbody>
-    </table>
+
+    <br/>
+
+    <div class="row">
+        <div class="col-sm-1"><h5>Task #</h5></div>
+        <div class="col-sm-6"><h5>Condition</h5></div>
+        <div class="col-sm-1"><h5>Result</h5></div>
+        <div class="col-sm-2"><h5>Date</h5></div>
+        <div class="col-sm-2"><h5>Source</h5></div>
+    </div>
+    <div class="row" th:each="result : ${submittedResults}">
+        <hr/>
+        <div class="col-sm-1" th:text="${result.taskId}">1</div>
+        <div class="col-sm-6" th:text="${result.taskCondition}">Task one condition</div>
+        <div class="col-sm-1">
+            <div th:if="${result.result}">
+                <div class="circleBase success"></div>
+            </div>
+            <div th:unless="${result.result}">
+                <div class="circleBase failure"></div>
+            </div>
+        </div>
+        <div class="col-sm-2" th:text="${result.submitDateTimeString}">2015-03-23</div>
+        <div class="col-sm-2">
+            <button type="button" class="btn btn-default btn-sm"
+                    data-toggle="modal" data-target="#sourceModal" th:attr="data-target='#sourceModal'+${result.id}">
+                View source
+            </button>
+        </div>
+        <div class="modal fade" id="sourceModal" th:attr="id=sourceModal+${result.id}" tabindex="-1" role="dialog"
+             aria-labelledby="sourceLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="sourceLabel">Source</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <pre>
+                            <div th:text="${result.source}">
+                                Source content
+                            </div>
+                        </pre>
+                        <hr/>
+                        <div th:text="${result.cause}">
+                            Cause
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

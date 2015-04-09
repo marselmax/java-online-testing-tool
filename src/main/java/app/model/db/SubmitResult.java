@@ -31,6 +31,10 @@ public class SubmitResult {
     @Column(name = "PATHTOFILE")
     private String pathToFile;
 
+    public Long getId() {
+        return id;
+    }
+
     public User getUser() {
         return user;
     }

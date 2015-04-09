@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class ResultUI {
 
+    private Long id;
+
     private Integer taskId;
 
     private String taskCondition;
@@ -15,6 +17,18 @@ public class ResultUI {
     private Boolean result;
 
     private LocalDateTime submitDateTime;
+
+    private String source;
+
+    private String cause;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getTaskId() {
         return taskId;
@@ -55,11 +69,33 @@ public class ResultUI {
         this.submitDateTime = submitDateTime;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getCause() {
+        return cause;
+    }
+
+    public void setCause(String cause) {
+        this.cause = cause;
+    }
+
     public static class Builder {
         private final ResultUI resultUI;
 
         public Builder() {
             this.resultUI = new ResultUI();
+        }
+
+        public Builder id(Long id) {
+            resultUI.setId(id);
+
+            return this;
         }
 
         public Builder taskId(Integer taskId) {
@@ -82,6 +118,18 @@ public class ResultUI {
 
         public Builder submitDateTime(LocalDateTime submitDateTime) {
             resultUI.setSubmitDateTime(submitDateTime);
+
+            return this;
+        }
+
+        public Builder source(String source) {
+            resultUI.setSource(source);
+
+            return this;
+        }
+
+        public Builder cause(String cause) {
+            resultUI.setCause(cause);
 
             return this;
         }

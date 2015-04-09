@@ -6,6 +6,7 @@ import app.dao.UserRepository;
 import app.exception.ServiceException;
 import app.model.db.*;
 import app.model.ui.ResultUI;
+import app.service.JavaFileUtils;
 import app.service.TaskService;
 import app.service.TestService;
 import org.springframework.data.domain.Sort;
@@ -128,12 +129,16 @@ public class MainController {
         for (SubmitResult submitResult : submitResults) {
             resultUIs.add(
                     new ResultUI.Builder()
+                            .id(submitResult.getId())
                             .taskId(submitResult.getTask().getTaskId())
                             .taskCondition(submitResult.getTask().getCondition())
                             .result(submitResult.getTestResult().getResult())
                             .submitDateTime(submitResult.getSubmitDateTime().toLocalDateTime())
+                            .source(JavaFileUtils.getSourceString(submitResult.getPathToFile()))
+                            .cause(submitResult.getTestResult().getCause())
                             .build()
             );
+
         }
 
         model.addAttribute("submittedResults", resultUIs);
