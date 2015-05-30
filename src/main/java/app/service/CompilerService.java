@@ -13,25 +13,23 @@ import java.util.Locale;
 public class CompilerService {
 
     private final JavaCompiler javaCompiler;
-    private final DiagnosticCollector<JavaFileObject> diagnosticCollector;
     private final StandardJavaFileManager javaFileManager;
 
     public CompilerService(JavaCompiler javaCompiler,
-                           DiagnosticCollector<JavaFileObject> diagnosticCollector,
                            StandardJavaFileManager javaFileManager
     ) {
         this.javaCompiler = javaCompiler;
-        this.diagnosticCollector = diagnosticCollector;
         this.javaFileManager = javaFileManager;
     }
 
     public CompileResult compile(File file) {
         Iterable<? extends JavaFileObject> javaFileObjects = javaFileManager.getJavaFileObjects(file);
-        JavaCompiler.CompilationTask task = javaCompiler.getTask(null, javaFileManager, diagnosticCollector, null, null, javaFileObjects);
+        DiagnosticCollector<JavaFileObject> diagnosticCollector2 = new DiagnosticCollector<>();
+        JavaCompiler.CompilationTask task = javaCompiler.getTask(null, javaFileManager, diagnosticCollector2, null, null, javaFileObjects);
 
         CompileResult compileResult = new CompileResult();
         compileResult.setResult(task.call());
-        compileResult.setErrorMessage(getMessage(diagnosticCollector.getDiagnostics()));
+        compileResult.setErrorMessage(getMessage(diagnosticCollector2.getDiagnostics()));
         return compileResult;
     }
 

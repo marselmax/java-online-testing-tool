@@ -14,7 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import javax.tools.*;
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 import java.net.MalformedURLException;
 
 /**
@@ -58,9 +60,8 @@ public class ApplicationConfig {
     @Bean
     public CompilerService compilerService() {
         JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
-        DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
-        StandardJavaFileManager fileManager = javaCompiler.getStandardFileManager(diagnosticCollector, null, null);
-        return new CompilerService(javaCompiler, diagnosticCollector, fileManager);
+        StandardJavaFileManager fileManager = javaCompiler.getStandardFileManager(null, null, null);
+        return new CompilerService(javaCompiler, fileManager);
     }
 
     @Bean

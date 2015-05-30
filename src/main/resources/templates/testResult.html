@@ -20,7 +20,13 @@
         </div>
         <div class="col-sm-6">
             <div class="text-right">
-                <a href="/user" th:text="${#httpServletRequest.remoteUser}">Username</a>
+                <form action="/user" method="post">
+                    <a href="javascript:;"
+                       onclick="parentNode.submit();"
+                       th:text="${#httpServletRequest.remoteUser}">Username</a>
+                    <input type="hidden" name="userName"
+                           value="userName" th:attr="value=${#httpServletRequest.remoteUser}"/>
+                </form>
             </div>
         </div>
     </div>
