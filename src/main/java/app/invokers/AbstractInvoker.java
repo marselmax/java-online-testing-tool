@@ -4,8 +4,6 @@ import app.exception.InvocationException;
 import app.exception.NoSuchConstructorException;
 import app.exception.ServiceException;
 import app.service.TestSecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -17,8 +15,6 @@ import java.util.Arrays;
  */
 
 public abstract class AbstractInvoker {
-
-    protected final Logger logger = LoggerFactory.getLogger(AbstractInvoker.class);
 
     protected final Class<?> clazz;
 
@@ -37,20 +33,12 @@ public abstract class AbstractInvoker {
             TestSecurityContext.enable();
             return constructor.newInstance(initargs);
         } catch (InvocationTargetException e) {
-            TestSecurityContext.disable();
-            logger.info("Exception during invocation was thrown: ", e);
             throw new InvocationException(e.getCause());
         } catch (NoSuchMethodException e) {
-            TestSecurityContext.disable();
-            logger.info("Exception during invocation was thrown: ", e);
             throw new NoSuchConstructorException(Arrays.toString(parameterClasses));
         } catch (InstantiationException e) {
-            TestSecurityContext.disable();
-            logger.info("Exception during invocation was thrown: ", e);
             throw new InvocationException(e.getCause());
         } catch (IllegalAccessException e) {
-            TestSecurityContext.disable();
-            logger.error("Exception was thrown ", e);
             throw new ServiceException("Internal error");
         } finally {
             TestSecurityContext.disable();
@@ -68,16 +56,10 @@ public abstract class AbstractInvoker {
             TestSecurityContext.enable();
             return method.invoke(instance, args);
         } catch (IllegalAccessException e) {
-            TestSecurityContext.disable();
-            logger.error("Exception was thrown ", e);
             throw new ServiceException("Internal error");
         } catch (InvocationTargetException e) {
-            TestSecurityContext.disable();
-            logger.info("Exception during invocation was thrown: ", e);
             throw new InvocationException(e.getCause());
         } catch (NoSuchMethodException e) {
-            TestSecurityContext.disable();
-            logger.info("Exception during invocation was thrown: ", e);
             throw new app.exception.NoSuchMethodException(methodName);
         } finally {
             TestSecurityContext.disable();
