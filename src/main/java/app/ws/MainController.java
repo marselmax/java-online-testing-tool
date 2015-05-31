@@ -1,7 +1,6 @@
 package app.ws;
 
 import app.dao.SubmitResultRepository;
-import app.dao.TaskRepository;
 import app.dao.UserRepository;
 import app.exception.ServiceException;
 import app.model.db.*;
@@ -9,7 +8,6 @@ import app.model.ui.ResultUI;
 import app.service.JavaFileUtils;
 import app.service.TaskService;
 import app.service.TestService;
-import org.springframework.data.domain.Sort;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,26 +26,20 @@ import java.util.List;
 @RequestMapping(value = "/")
 public class MainController {
 
-    private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final SubmitResultRepository submitResultRepository;
     private final TestService testService;
     private final TaskService taskService;
-    private final String tasksPath;
 
-    public MainController(TaskRepository taskRepository,
-                          UserRepository userRepository,
+    public MainController(UserRepository userRepository,
                           SubmitResultRepository submitResultRepository,
                           TestService testService,
-                          TaskService taskService,
-                          String tasksPath
+                          TaskService taskService
     ) {
-        this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.submitResultRepository = submitResultRepository;
         this.testService = testService;
         this.taskService = taskService;
-        this.tasksPath = tasksPath;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -57,7 +49,7 @@ public class MainController {
 
     @ModelAttribute(value = "tasks")
     public List<Task> getTasks() {
-        return taskRepository.findAll(new Sort(Sort.Direction.ASC, "id"));
+        return taskService.getAllTasks();
     }
 
     @RequestMapping(value = "submit", method = RequestMethod.POST)
@@ -67,7 +59,7 @@ public class MainController {
                          @RequestParam("taskId") Long taskId
     ) throws ServiceException {
         String userName = request.getRemoteUser();
-        Task task = taskRepository.getOne(taskId);
+        Task task = taskService.getTask(taskId);
         User user = userRepository.findByName(userName);
         TestResult result = testService.submit(user, task, multipartFile);
         model.addAttribute("testResult", result);

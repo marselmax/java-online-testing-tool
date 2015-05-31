@@ -6,10 +6,12 @@ import app.model.db.Task;
 import app.model.dto.CompileResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author marsel.maximov
@@ -73,5 +75,13 @@ public class TaskService {
 
     private String generatePathName(Integer taskId, Date date, String classType) {
         return tasksPath + taskId + "/" + date + "/" + classType + "/";
+    }
+
+    public List<Task> getAllTasks() {
+        return taskRepository.findAll(new Sort(Sort.Direction.ASC, "id"));
+    }
+
+    public Task getTask(Long taskId) {
+        return taskRepository.getOne(taskId);
     }
 }

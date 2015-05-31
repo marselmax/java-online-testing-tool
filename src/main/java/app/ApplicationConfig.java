@@ -82,8 +82,10 @@ public class ApplicationConfig {
     @Bean
     public MainController mainController() throws MalformedURLException {
         return new MainController(
-                taskRepository, userRepository, submitResultRepository,
-                testService(), taskService(), tasksPath
+                userRepository,
+                submitResultRepository,
+                testService(),
+                taskService()
         );
     }
 }
